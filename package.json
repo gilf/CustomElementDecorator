@@ -1,0 +1,12 @@
+{
+  "name": "CustomElementDecorator",
+  "version": "0.0.1",
+  "license": "MIT",
+  "author": "Gil Fink",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "typescript": "~2.9.2"
+  }
+
+}
