@@ -4,6 +4,7 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r = (c < 3 ? d(r) : c > 3 ? d(target, key, r) : d(target, key)) || r;
     return c > 3 && r && Object.defineProperty(target, key, r), r;
 };
+const noop = () => { };
 const validateSelector = (selector) => {
     if (selector.indexOf('-') <= 0) {
         throw new Error('You need at least 1 dash in the custom element name!');
@@ -20,6 +21,7 @@ const CustomElement = (config) => (cls) => {
     }
     template.innerHTML = config.template;
     const connectedCallback = cls.prototype.connectedCallback || function () { };
+    const disconnectedCallback = cls.prototype.disconnectedCallback || function () { };
     cls.prototype.connectedCallback = function () {
         const clone = document.importNode(template.content, true);
         if (config.useShadow) {
@@ -28,7 +30,22 @@ const CustomElement = (config) => (cls) => {
         else {
             this.appendChild(clone);
         }
+        if (this.componentWillMount) {
+            this.componentWillMount();
+        }
         connectedCallback.call(this);
+        if (this.componentDidMount) {
+            this.componentDidMount();
+        }
+    };
+    cls.prototype.disconnectedCallback = function () {
+        if (this.componentWillUnmount) {
+            this.componentWillUnmount();
+        }
+        disconnectedCallback.call(this);
+        if (this.componentDidUnmount) {
+            this.componentDidUnmount();
+        }
     };
     window.customElements.define(config.selector, cls);
 };
@@ -37,6 +54,22 @@ let MyName = class MyName extends HTMLElement {
         const elm = document.createElement('h3');
         elm.textContent = 'Boo!';
         this.shadowRoot.appendChild(elm);
+        console.log('connected callback');
+    }
+    disconnectedCallback() {
+        console.log('disconnected callback');
+    }
+    componentWillMount() {
+        console.log('component will mount');
+    }
+    componentDidMount() {
+        console.log('component did mount');
+    }
+    componentWillUnmount() {
+        console.log('component will unmount');
+    }
+    componentDidUnmount() {
+        console.log('component did unmount');
     }
 };
 MyName = __decorate([
@@ -58,4 +91,10 @@ MyName = __decorate([
         useShadow: true
     })
 ], MyName);
+window.addEventListener('DOMContentLoaded', () => {
+    const element = document.querySelector('ce-my-name');
+    setTimeout(() => {
+        element.parentNode.removeChild(element);
+    }, 2000);
+});
 //# sourceMappingURL=main.js.map

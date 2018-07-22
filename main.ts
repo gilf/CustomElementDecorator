@@ -5,6 +5,8 @@ interface CustomElementConfig {
     useShadow?: boolean;
 }
 
+const noop = () => {};
+
 const validateSelector = (selector: string) => {
     if (selector.indexOf('-') <= 0) {
         throw new Error('You need at least 1 dash in the custom element name!');
@@ -23,6 +25,8 @@ const CustomElement = (config: CustomElementConfig) => (cls) => {
     template.innerHTML = config.template;
 
     const connectedCallback = cls.prototype.connectedCallback || function () {};
+    const disconnectedCallback = cls.prototype.disconnectedCallback || function () {};
+
     cls.prototype.connectedCallback = function() {
         const clone = document.importNode(template.content, true);
         if (config.useShadow) {
@@ -30,7 +34,24 @@ const CustomElement = (config: CustomElementConfig) => (cls) => {
         } else {
             this.appendChild(clone);
         }
+
+        if (this.componentWillMount) {
+            this.componentWillMount();
+        }
         connectedCallback.call(this);
+        if (this.componentDidMount) {
+            this.componentDidMount();
+        }
+    };
+
+    cls.prototype.disconnectedCallback = function() {
+        if (this.componentWillUnmount) {
+            this.componentWillUnmount();
+        }
+        disconnectedCallback.call(this);
+        if (this.componentDidUnmount) {
+            this.componentDidUnmount();
+        }
     };
 
     window.customElements.define(config.selector, cls);
@@ -58,5 +79,33 @@ class MyName extends HTMLElement {
         const elm = document.createElement('h3');
         elm.textContent = 'Boo!';
         this.shadowRoot.appendChild(elm);
+        console.log('connected callback');
+    }
+
+    disconnectedCallback() {
+        console.log('disconnected callback');
+    }
+
+    componentWillMount() {
+        console.log('component will mount');
+    }
+
+    componentDidMount() {
+        console.log('component did mount');
+    }
+
+    componentWillUnmount() {
+        console.log('component will unmount');
+    }
+
+    componentDidUnmount() {
+        console.log('component did unmount');
     }
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+    const element = document.querySelector('ce-my-name');
+    setTimeout(()=> {
+        element.parentNode.removeChild(element);
+    }, 2000);
+});
