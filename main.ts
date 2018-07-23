@@ -24,8 +24,8 @@ const CustomElement = (config: CustomElementConfig) => (cls) => {
     }
     template.innerHTML = config.template;
 
-    const connectedCallback = cls.prototype.connectedCallback || function () {};
-    const disconnectedCallback = cls.prototype.disconnectedCallback || function () {};
+    const connectedCallback = cls.prototype.connectedCallback || noop;
+    const disconnectedCallback = cls.prototype.disconnectedCallback || noop;
 
     cls.prototype.connectedCallback = function() {
         const clone = document.importNode(template.content, true);
